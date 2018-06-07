@@ -77,14 +77,14 @@ int main(void)
     //	exit(1);
     //}
 
-    while((readsize = recv(acc_sockfd, BUFF, 1024,0)) != 0){
+    while((readsize = recv(acc_sockfd, BUFF, 512,0)) != 0){
       printf("%d\n",acc_sockfd);
-      printf("%s",BUFF);
+      //printf("%s",BUFF);
       //printf("\n分割します\n");
-      //ptr = strstr(BUFF, "value=");
+      ptr = strstr(BUFF, "value=");
       //printf("\n分割します2\n");
-    //  ptr = strtok(ptr,",");
-      //strncpy(value,ptr+7,strlen(ptr)-7);
+      ptr = strtok(ptr,",");
+      strncpy(value,ptr+7,strlen(ptr)-7);
       //printf("->->->->->->->->->->->->->->->->->->||%s\n",value);
       /*
 
@@ -102,7 +102,7 @@ int main(void)
       //perror("fwrite");
       //}
       */
-      //ptr = "NULL";
+      ptr = "NULL";
       bzero(&BUFF,sizeof(BUFF));
     }
     //close(fp_write);
