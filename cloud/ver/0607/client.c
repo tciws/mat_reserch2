@@ -18,7 +18,6 @@ int main(int argc, char* argv[]){
   /* インタネットソケットアドレス構造体 */
   int     addrlen;
   char    BUFF[BUFFSIZE];       /* 送信バッファ */
-  char    END[] = "END";
   int     nbytes;               /* 送信メッセージ長 */
   struct hostent  *hp;          /* 相手ホストエントリ */
 
@@ -80,11 +79,10 @@ int main(int argc, char* argv[]){
       bzero(&BUFF,sizeof(BUFF));
 
       while(feof(fp) == 0){
-	//fgets(BUFF, BUFFSIZE, fp); /* 送信メッセージの取得 */
-  fread(BUFF, sizeof(char), 1023, fp);
+	fgets(BUFF, BUFFSIZE, fp); /* 送信メッセージの取得 */
 	nbytes = strlen(BUFF);        /* 送信メッセージ長の設定 */
   printf("##%d\n",nbytes);
-	//BUFF[nbytes-1]='|';    /* fgetsで取り込まれた文字列の最後から改行を削除 */
+	//BUFF[nbytes-1]='\0';    /* fgetsで取り込まれた文字列の最後から改行を削除 */
 	/* 送信 */
 	if (send(sockfd, BUFF, nbytes, 0) != nbytes) {
 	  perror("送信失敗");         /* 送信失敗 */
@@ -93,7 +91,9 @@ int main(int argc, char* argv[]){
 	bzero(&BUFF,sizeof(BUFF));
       }
       fclose(fp);
+
+
+
     }
-    send(sockfd, END, nbytes, 0);
     close(sockfd);
 }
