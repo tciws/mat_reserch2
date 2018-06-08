@@ -76,10 +76,21 @@ int main(void)
     //	perror("can't open recvfile");
     //	exit(1);
     //}
-
-    while((readsize = recv(acc_sockfd, BUFF, 1024,0)) != 0){
-      printf("%d\n",acc_sockfd);
-      printf("%s",BUFF);
+    int size;
+    //recv(acc_sockfd, &size,sizeof(int),0);
+    //printf("->->->->->->%d\n",size);
+    while(1){
+      //printf("%d\n",acc_sockfd);
+      recv(acc_sockfd, &size,sizeof(int),0);
+      printf("->->->->->->----%d\n",size);
+      if((readsize = recv(acc_sockfd, BUFF, size,0)) != 0){
+        printf("%s",BUFF);
+        printf("\n================================\n");
+        bzero(BUFF,sizeof(BUFF));
+      }else{
+        printf("BREAK\n");
+        break;
+      }
       //printf("\n分割します\n");
       //ptr = strstr(BUFF, "value=");
       //printf("\n分割します2\n");
@@ -103,7 +114,6 @@ int main(void)
       //}
       */
       //ptr = "NULL";
-      bzero(&BUFF,sizeof(BUFF));
     }
     //close(fp_write);
 
