@@ -11,6 +11,7 @@
 #include	<unistd.h>
 #define BUFFSIZE 1000            /* メッセージの最大長 */
 #define port_file "mngnode.conf" //ポート番号が書いてある設定ファイル
+
 int main(void)
 {
     int     port;                 /* 自ポート番号*/
@@ -80,9 +81,9 @@ int main(void)
     //printf("->->->->->->%d\n",size);
     while(1){
       //printf("%d\n",acc_sockfd);
-      recv(acc_sockfd, &size,sizeof(int),0);
-      printf("->->->->->->----%d\n",size);
-      if((readsize = recv(acc_sockfd, BUFF, nbytes,0)) != 0){
+      //recv(acc_sockfd, &size,sizeof(int),0);
+      //printf("->->->->->->----%d\n",size);
+      if((readsize = recv(acc_sockfd, BUFF, BUFFSIZE-100,0)) != 0){
         printf("%s",BUFF);
         printf("\n================================\n");
         bzero(BUFF,sizeof(BUFF));

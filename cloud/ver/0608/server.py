@@ -19,7 +19,7 @@ bufsize = 0
 while True:
     #bufsize = clientsock.recv(4)
     #print(bufsize)
-    rcvmsg = clientsock.recv(1024)
+    rcvmsg = clientsock.recv(924)
     if not rcvmsg:
         break
     else:

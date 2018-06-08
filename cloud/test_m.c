@@ -69,6 +69,7 @@ int main(void)
     FILE *fp_write;
     char *filename_write = "a.log";
     char value[15];
+    int tmp_value;//固定長配列に書き換える？
 
     /* コピー先ファイルのオープン */
     //if ((fp_write = fopen(filename_write, "w")) == NULL) {
@@ -76,45 +77,33 @@ int main(void)
     //	exit(1);
     //}
     int size;
-    //recv(acc_sockfd, &size,sizeof(int),0);
-    //printf("->->->->->->%d\n",size);
     while(1){
-      //printf("%d\n",acc_sockfd);
-      recv(acc_sockfd, &size,sizeof(int),0);
+      recv(acc_sockfd, &size,sizeof(int),0);//文字数を取得
       printf("->->->->->->----%d\n",size);
-      if((readsize = recv(acc_sockfd, BUFF, nbytes,0)) != 0){
+      if((readsize = recv(acc_sockfd, BUFF, size,0)) != 0){//実際の文字列を受信
         printf("%s",BUFF);
+
+        ptr = strtok(BUFF,",");
+            //1つ目のトークン表示
+            //puts(ptr);
+            //トークンがNULLになるまでループ
+            i = 0;
+            while( ptr = strtok(NULL, ",") ){
+              if(i == 0 && ptr != NULL){
+                //value = strtok(tp,"=");
+                strncpy(value,ptr+7,strlen(ptr)-7);
+                tmp_value = atoi(value);
+                printf("%d\n", tmp_value);
+              }
+                i++;
+            }
         printf("\n================================\n");
         bzero(BUFF,sizeof(BUFF));
       }else{
         printf("BREAK\n");
         break;
       }
-      //printf("\n分割します\n");
-      //ptr = strstr(BUFF, "value=");
-      //printf("\n分割します2\n");
-    //  ptr = strtok(ptr,",");
-      //strncpy(value,ptr+7,strlen(ptr)-7);
-      //printf("->->->->->->->->->->->->->->->->->->||%s\n",value);
-      /*
-
-      i = 0;
-      while( ptr = strtok(NULL, ",") ){
-          //value = strtok(tp,"=");
-          if(i == 0){
-            strncpy(value,ptr+7,strlen(ptr)-7);
-            printf("----------------------------------------%s\n", value);
-          }
-          i++;
-      }
-      bzero(&value,sizeof(value));
-      //  if(fwrite(&BUFF, readsize, 1, fp_write) != 1){
-      //perror("fwrite");
-      //}
-      */
-      //ptr = "NULL";
     }
-    //close(fp_write);
 
     close(acc_sockfd);  /* ソケット記述子の削除 */
 

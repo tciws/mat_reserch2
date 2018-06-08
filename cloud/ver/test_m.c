@@ -76,13 +76,10 @@ int main(void)
     //	exit(1);
     //}
     int size;
-    //recv(acc_sockfd, &size,sizeof(int),0);
-    //printf("->->->->->->%d\n",size);
     while(1){
-      //printf("%d\n",acc_sockfd);
-      recv(acc_sockfd, &size,sizeof(int),0);
+      recv(acc_sockfd, &size,sizeof(int),0);//文字数を取得
       printf("->->->->->->----%d\n",size);
-      if((readsize = recv(acc_sockfd, BUFF, nbytes,0)) != 0){
+      if((readsize = recv(acc_sockfd, BUFF, size,0)) != 0){//実際の文字列を受信
         printf("%s",BUFF);
         printf("\n================================\n");
         bzero(BUFF,sizeof(BUFF));
@@ -90,31 +87,7 @@ int main(void)
         printf("BREAK\n");
         break;
       }
-      //printf("\n分割します\n");
-      //ptr = strstr(BUFF, "value=");
-      //printf("\n分割します2\n");
-    //  ptr = strtok(ptr,",");
-      //strncpy(value,ptr+7,strlen(ptr)-7);
-      //printf("->->->->->->->->->->->->->->->->->->||%s\n",value);
-      /*
-
-      i = 0;
-      while( ptr = strtok(NULL, ",") ){
-          //value = strtok(tp,"=");
-          if(i == 0){
-            strncpy(value,ptr+7,strlen(ptr)-7);
-            printf("----------------------------------------%s\n", value);
-          }
-          i++;
-      }
-      bzero(&value,sizeof(value));
-      //  if(fwrite(&BUFF, readsize, 1, fp_write) != 1){
-      //perror("fwrite");
-      //}
-      */
-      //ptr = "NULL";
     }
-    //close(fp_write);
 
     close(acc_sockfd);  /* ソケット記述子の削除 */
 

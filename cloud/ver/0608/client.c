@@ -109,11 +109,12 @@ int main(int argc, char* argv[]){
           printf("変態紳士%lu\n",nbytes);
           printf("送信処理を書く\n");
           //size = strlen(BUFF1);
-          nbytes = strlen(BUFF1);
-          send(sockfd,&nbytes,sizeof(int),0);
-          printf("->->->->->->->%d\n",nbytes);
+          //send(sockfd,&nbytes,sizeof(int),0);
+          //printf("->->->->->->->%d\n",nbytes);
           //結合処理を書く
-          if (send(sockfd, BUFF1, nbytes, 0) < 0) {
+          strncat(BUFF1, HOGE, BUFFSIZE-nbytes);
+          printf("#####################%d\n",strlen(BUFF1));
+          if (send(sockfd, BUFF1, BUFFSIZE-100, 0) != BUFFSIZE-100) {
         	  perror("送信失敗");
         	  exit(1);
         	}
@@ -126,9 +127,12 @@ int main(int argc, char* argv[]){
         bzero(BUFF2,sizeof(BUFF2));
       }
       nbytes = strlen(BUFF1);
-      send(sockfd,&nbytes,sizeof(int),0);
-      printf("->->->->->->->---%d\n",nbytes);
-      if (send(sockfd, BUFF1, nbytes, 0) < 0) {
+      //send(sockfd,&nbytes,sizeof(int),0);
+      //printf("->->->->->->->---%d\n",nbytes);
+      //結合処理を書く
+      strncat(BUFF1, HOGE, BUFFSIZE-nbytes);
+      printf("#####################%d\n",strlen(BUFF1));
+      if (send(sockfd, BUFF1, BUFFSIZE-100, 0) != BUFFSIZE-100) {
         perror("送信失敗");
         exit(1);
       }else{
