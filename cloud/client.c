@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define BUFFSIZE 1024
+#define BUFFSIZE 1000
 
 int main(int argc, char* argv[]){
   char    *host = "cs-d10";                /* 相手ホスト名 */
@@ -17,10 +17,12 @@ int main(int argc, char* argv[]){
   struct sockaddr_in      addr, my_addr;
   /* インタネットソケットアドレス構造体 */
   int     addrlen;
-  char    BUFF[BUFFSIZE];       /* 送信バッファ */
-  char    END[] = "END";
+  char BUFF1[BUFFSIZE-100] = { };
+  char BUFF2[100];
+  char    END[] = "\nEND\n";
   int     nbytes;               /* 送信メッセージ長 */
   struct hostent  *hp;          /* 相手ホストエントリ */
+  int *size;
 
   if(argc != 2){
     printf("please input 10 filename\n");
@@ -73,27 +75,63 @@ int main(int argc, char* argv[]){
     for(i=1;i<argc;i++){
       filename = argv[i];
       if((fp=fopen(filename, "r")) == NULL){
-	perror("can't open file\n");
-	exit(1);
+	       perror("can't open file\n");
+	        exit(1);
       }
 
-      bzero(&BUFF,sizeof(BUFF));
-
+      bzero(BUFF1,sizeof(BUFF1));
+      bzero(BUFF2,sizeof(BUFF2));
+/*
       while(feof(fp) == 0){
-	//fgets(BUFF, BUFFSIZE, fp); /* 送信メッセージの取得 */
-  fread(BUFF, sizeof(char), 1023, fp);
-	nbytes = strlen(BUFF);        /* 送信メッセージ長の設定 */
+	//fgets(BUFF, BUFFSIZE, fp);
+  fread(BUFF, sizeof(char), BUFFSIZE, fp);
+	nbytes = strlen(BUFF);
   printf("##%d\n",nbytes);
-	//BUFF[nbytes-1]='|';    /* fgetsで取り込まれた文字列の最後から改行を削除 */
-	/* 送信 */
-	if (send(sockfd, BUFF, nbytes, 0) != nbytes) {
-	  perror("送信失敗");         /* 送信失敗 */
+	//BUFF[nbytes-1]='|';
+	if (send(sockfd, BUFF, BUFFSIZE, 0) != BUFFSIZE) {
+	  perror("送信失敗");
 	  exit(1);
 	}
 	bzero(&BUFF,sizeof(BUFF));
       }
+      */
+      nbytes = 0;
+      while(feof(fp) == 0){
+        fgets(BUFF2, BUFFSIZE, fp); /* 送信メッセージの取得 */
+      //fread(BUFF, sizeof(char), 1023, fp);
+        //printf("##%d\n",nbytes);
+        if(nbytes+strlen(BUFF2)<=BUFFSIZE-100){
+          printf("%s", BUFF2);
+          strncat(BUFF1, BUFF2, strlen(BUFF2));
+          nbytes += strlen(BUFF2);
+        }else{
+          printf("変態紳士%lu\n",nbytes);
+          printf("送信処理を書く\n");
+          //size = strlen(BUFF1);
+          send(sockfd,&nbytes,sizeof(int),0);
+          printf("->->->->->->->%d\n",nbytes);
+          if (send(sockfd, BUFF1, nbytes, 0) != strlen(BUFF1)) {
+        	  perror("送信失敗");
+        	  exit(1);
+        	}
+          //
+          bzero(BUFF1,sizeof(BUFF1));
+          printf("%s", BUFF2);
+          strncat(BUFF1, BUFF2, strlen(BUFF2));
+          nbytes = 0;
+        }
+        bzero(BUFF2,sizeof(BUFF2));
+      }
+      nbytes = strlen(BUFF1);
+      send(sockfd,&nbytes,sizeof(int),0);
+      printf("->->->->->->->---%d\n",nbytes);
+      if (send(sockfd, BUFF1, nbytes, 0) != strlen(BUFF1)) {
+        perror("送信失敗");
+        exit(1);
+      }else{
+        send(sockfd, END, 5, 0);
+      }
       fclose(fp);
     }
-    send(sockfd, END, nbytes, 0);
     close(sockfd);
 }

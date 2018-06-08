@@ -12,12 +12,32 @@ serversock.listen(10) #接続の待ち受けをします（キューの最大数
 print 'Waiting for connections...'
 clientsock, client_address = serversock.accept() #接続されればデータを格納
 rcvmsg = "NULL"
-while(1):
-    rcvmsg = clientsock.recv(1024)
-    if rcvmsg == "END":
+t = 0
+value_flag = 0
+value = []
+bufsize = 0
+while True:
+    #bufsize = clientsock.recv(4)
+    #print(bufsize)
+    rcvmsg = clientsock.recv(924)
+    if not rcvmsg:
         break
     else:
-        print(rcvmsg)
+        value = []
+        print("変態")
+        BUFF = rcvmsg.split("\n")
+        print(BUFF)
+        for i in BUFF:
+            i = i.split(",")
+            if(len(i)>1):
+                i = i[1].split("value=")
+                value.append(i[1])
+                #print(i)
+        #print(value)
+        #print("#########"+str(len(value)))
+        #value_flag = BUFF.find('value=')
+        #if(value_flag != -1):
+        #    print(str(value_flag)+rcvmsg)
 #    print 'Received -> %s' % (rcvmsg)
 #    if rcvmsg == '':
 #      break
