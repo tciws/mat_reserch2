@@ -20,13 +20,13 @@ int main(int argc, char* argv[]){
   char BUFF1[BUFFSIZE-100] = {0};
   char BUFF2[100];
   char HOGE[100] = {0};
-  char    END[] = "\nEND\n";
-  char    FILE_END = "\nFILE_END\n"
+  char    END[] = "END";
+  char    FILE_END[] = "FILE_END";
   int     nbytes;               /* 送信メッセージ長 */
   struct hostent  *hp;          /* 相手ホストエントリ */
   int *size;
 
-  if(argc != 2){
+  if(argc < 2){
     printf("please input 10 filename\n");
     exit(1);
   }
@@ -94,6 +94,14 @@ int main(int argc, char* argv[]){
         bzero(BUFF1,sizeof(BUFF1));
       }
       fclose(fp);
+      printf("ファイル終了宣言\n");
+      nbytes = 1025;
+      send(sockfd,&nbytes,sizeof(int),0);
+      //send(sockfd,FILE_END,9,0);
     }
+    printf("通信終了宣言\n");
+    nbytes = 1026;
+    send(sockfd,&nbytes,sizeof(int),0);
+    //send(sockfd,END,4,0);
     close(sockfd);
 }

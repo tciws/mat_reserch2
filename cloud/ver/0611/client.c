@@ -21,7 +21,6 @@ int main(int argc, char* argv[]){
   char BUFF2[100];
   char HOGE[100] = {0};
   char    END[] = "\nEND\n";
-  char    FILE_END = "\nFILE_END\n"
   int     nbytes;               /* 送信メッセージ長 */
   struct hostent  *hp;          /* 相手ホストエントリ */
   int *size;
@@ -80,18 +79,60 @@ int main(int argc, char* argv[]){
 	       perror("can't open file\n");
 	        exit(1);
       }
+
       bzero(BUFF1,sizeof(BUFF1));
+      bzero(BUFF2,sizeof(BUFF2));
+/*
+      while(feof(fp) == 0){
+	//fgets(BUFF, BUFFSIZE, fp);
+  fread(BUFF, sizeof(char), BUFFSIZE, fp);
+	nbytes = strlen(BUFF);
+  printf("##%d\n",nbytes);
+	//BUFF[nbytes-1]='|';
+	if (send(sockfd, BUFF, BUFFSIZE, 0) != BUFFSIZE) {
+	  perror("送信失敗");
+	  exit(1);
+	}
+	bzero(&BUFF,sizeof(BUFF));
+      }
+      */
       nbytes = 0;
       while(feof(fp) == 0){
-        fgets(BUFF1, BUFFSIZE, fp); /* 送信メッセージの取得 */
-        printf("%s", BUFF1);
-        nbytes = strlen(BUFF1);
-        send(sockfd,&nbytes,sizeof(int),0);
-        if (send(sockfd, BUFF1, nbytes, 0) < 0) {
+        fgets(BUFF2, BUFFSIZE, fp); /* 送信メッセージの取得 */
+      //fread(BUFF, sizeof(char), 1023, fp);
+        //printf("##%d\n",nbytes);
+        if(nbytes+strlen(BUFF2)<=BUFFSIZE-100){
+          printf("%s", BUFF2);
+          strncat(BUFF1, BUFF2, strlen(BUFF2));
+          nbytes += strlen(BUFF2);
+        }else{
+          printf("変態紳士%lu\n",nbytes);
+          printf("送信処理を書く\n");
+          //size = strlen(BUFF1);
+          nbytes = strlen(BUFF1);
+          send(sockfd,&nbytes,sizeof(int),0);
+          printf("->->->->->->->%d\n",nbytes);
+          //結合処理を書く
+          if (send(sockfd, BUFF1, nbytes, 0) < 0) {
         	  perror("送信失敗");
         	  exit(1);
+        	}
+          //
+          bzero(BUFF1,sizeof(BUFF1));
+          printf("%s", BUFF2);
+          strncat(BUFF1, BUFF2, strlen(BUFF2));
+          nbytes = 0;
         }
-        bzero(BUFF1,sizeof(BUFF1));
+        bzero(BUFF2,sizeof(BUFF2));
+      }
+      nbytes = strlen(BUFF1);
+      send(sockfd,&nbytes,sizeof(int),0);
+      printf("->->->->->->->---%d\n",nbytes);
+      if (send(sockfd, BUFF1, nbytes, 0) < 0) {
+        perror("送信失敗");
+        exit(1);
+      }else{
+        send(sockfd, END, 5, 0);
       }
       fclose(fp);
     }

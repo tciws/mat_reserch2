@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define BUFFSIZE 1000
+#define BUFFSIZE 1024
 
 int main(int argc, char* argv[]){
   char    *host = "cs-d10";                /* 相手ホスト名 */
@@ -17,14 +17,9 @@ int main(int argc, char* argv[]){
   struct sockaddr_in      addr, my_addr;
   /* インタネットソケットアドレス構造体 */
   int     addrlen;
-  char BUFF1[BUFFSIZE-100] = {0};
-  char BUFF2[100];
-  char HOGE[100] = {0};
-  char    END[] = "\nEND\n";
-  char    FILE_END = "\nFILE_END\n"
+  char    BUFF[BUFFSIZE];       /* 送信バッファ */
   int     nbytes;               /* 送信メッセージ長 */
   struct hostent  *hp;          /* 相手ホストエントリ */
-  int *size;
 
   if(argc != 2){
     printf("please input 10 filename\n");
@@ -77,23 +72,27 @@ int main(int argc, char* argv[]){
     for(i=1;i<argc;i++){
       filename = argv[i];
       if((fp=fopen(filename, "r")) == NULL){
-	       perror("can't open file\n");
-	        exit(1);
+	perror("can't open file\n");
+	exit(1);
       }
-      bzero(BUFF1,sizeof(BUFF1));
-      nbytes = 0;
+
+      bzero(&BUFF,sizeof(BUFF));
+
       while(feof(fp) == 0){
-        fgets(BUFF1, BUFFSIZE, fp); /* 送信メッセージの取得 */
-        printf("%s", BUFF1);
-        nbytes = strlen(BUFF1);
-        send(sockfd,&nbytes,sizeof(int),0);
-        if (send(sockfd, BUFF1, nbytes, 0) < 0) {
-        	  perror("送信失敗");
-        	  exit(1);
-        }
-        bzero(BUFF1,sizeof(BUFF1));
+	fgets(BUFF, BUFFSIZE, fp); /* 送信メッセージの取得 */
+	nbytes = strlen(BUFF);        /* 送信メッセージ長の設定 */
+	//BUFF[nbytes-1]='\0';    /* fgetsで取り込まれた文字列の最後から改行を削除 */
+	/* 送信 */
+	if (send(sockfd, BUFF, nbytes, 0) != nbytes) {
+	  perror("送信失敗");         /* 送信失敗 */
+	  exit(1);
+	}
+	bzero(&BUFF,sizeof(BUFF));
       }
       fclose(fp);
+
+
+
     }
     close(sockfd);
 }
