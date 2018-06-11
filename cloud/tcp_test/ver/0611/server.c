@@ -1,10 +1,10 @@
 /* TCPのサーバプログラム */
 
 /* 以下のヘッダファイルは/usr/includeにある */
-#include        <stdio.h>
-#include        <sys/types.h>
-#include        <sys/socket.h>
-#include        <netinet/in.h>
+#include  <stdio.h>
+#include  <sys/types.h>
+#include  <sys/socket.h>
+#include  <netinet/in.h>
 #include	<string.h>
 #include	<strings.h>
 #include	<stdlib.h>
@@ -15,23 +15,18 @@ int main(void)
 {
     int     port;                 /* 自ポート番号*/
     char    port_moji[6];
-    int     sockfd, acc_sockfd,sockfd2, acc_sockfd2;   /* ソケット記述子 */
-    struct sockaddr_in      addr,addr2, my_addr;
+    int     sockfd, acc_sockfd;   /* ソケット記述子 */
+    struct sockaddr_in      addr, my_addr;
                                   /* インタネットソケットアドレス構造体 */
-    int     addrlen,addrlen2;
+    int     addrlen;
     char    BUFF[BUFFSIZE];       /* 受信バッファ */
     int     nbytes;               /* 受信メッセージ長 */
     char *ptr;  //分割後の文字列が入るポインタ
+    int TMP_VALUE[10];
+    int RESULT[5] = { };
     //----------------自ポート番号の取得-------------------------
-    FILE *fp_port;
-    if((fp_port = fopen(port_file, "r")) == NULL){
-      perror("can't open file\n");
-      exit(1);
-    }
-    fgets(port_moji, 6, fp_port);
-    port = atoi(port_moji);
 
-    fclose(fp_port);
+    port = 50040;
     printf("my port is %d\n",port);
     //----------------------------------------------------------
 
@@ -55,65 +50,66 @@ int main(void)
     listen(sockfd, 5);
 
     addrlen = sizeof (addr);
-    bzero(BUFF, sizeof(BUFF));    /* 受信バッファの0クリア */
 
     /* クライアントからの接続受付 */
     if ((acc_sockfd = accept(sockfd, (struct sockaddr *)&addr, &addrlen)) < 0) {
       perror("wait accept");
       exit(1);
     }
-    //=============================================================================
-    addrlen2 = sizeof (addr2);
-    /* クライアントからの接続受付 */
-    if ((acc_sockfd2 = accept(sockfd2, (struct sockaddr *)&addr2, &addrlen2)) < 0) {
-      perror("wait accept2");
-      exit(1);
-    }
-    //=============================================================================
-    bzero(&BUFF,sizeof(BUFF));
 
+    //bzero(&BUFF,sizeof(BUFF));
+    bzero(TMP_VALUE, sizeof(TMP_VALUE));    /* 受信バッファの0クリア */
     int readsize,i;
     FILE *fp_write;
     char *filename_write = "a.log";
     char value[15];
     int tmp_value;//固定長配列に書き換える？
-
-    /* コピー先ファイルのオープン */
-    //if ((fp_write = fopen(filename_write, "w")) == NULL) {
-    //	perror("can't open recvfile");
-    //	exit(1);
-    //}
-    int size;
-    while(1){
-      recv(acc_sockfd, &size,sizeof(int),0);//文字数を取得
-      printf("->->->->->->----%d\n",size);
-      if((readsize = recv(acc_sockfd, BUFF, size,0)) != 0){//実際の文字列を受信
-        printf("%s",BUFF);
-
-        ptr = strtok(BUFF,",");
-            //1つ目のトークン表示
-            //puts(ptr);
-            //トークンがNULLになるまでループ
-            i = 0;
-            while( ptr = strtok(NULL, ",") ){
-              if(i == 0 && ptr != NULL){
-                //value = strtok(tp,"=");
-                strncpy(value,ptr+7,strlen(ptr)-7);
-                tmp_value = atoi(value);
-                printf("%d\n", tmp_value);
-              }
-                i++;
-            }
-        printf("\n================================\n");
-        bzero(BUFF,sizeof(BUFF));
+    int size,count,sum = 0,kekka_max = 0,kekka_min = 0,sum_sum = 0;
+    printf("受信待機\n");
+      if(recv(acc_sockfd, TMP_VALUE,sizeof(TMP_VALUE),0) != 0){//実際の文字列を受信
+          printf("受信しました\n");
+          kekka_min = TMP_VALUE[0];
+        for(count = 0; count < 10;count++){
+          printf("%d\n",TMP_VALUE[count]);
+          kekka_max = max(TMP_VALUE[count],kekka_max);
+          kekka_min = min(TMP_VALUE[count],kekka_min);
+          sum += TMP_VALUE[count];
+          sum_sum +=TMP_VALUE[count]*TMP_VALUE[count];
+        }
+        RESULT[0] = kekka_max;
+        RESULT[1] = kekka_min;
+        RESULT[2] = sum;
+        RESULT[3] = sum_sum;
+        RESULT[4] = count;
+        if (send(acc_sockfd, RESULT, sizeof(RESULT), 0) < 0) {
+            perror("送信失敗");
+            exit(1);
+        }else{
+          printf("送信完了\n");
+        }
+        bzero(TMP_VALUE,sizeof(TMP_VALUE));
       }else{
         printf("BREAK\n");
-        break;
       }
-    }
 
     close(acc_sockfd);  /* ソケット記述子の削除 */
-
     close(sockfd);      /* ソケットの終了 */
-
+}
+int max(int a,int b){
+  if(a >= b){
+    return a;
+  }
+  if(a < b){
+    return b;
+  }
+  return 0;
+}
+int min(int a,int b){
+  if(a < b){
+    return a;
+  }
+  if(a >= b){
+    return b;
+  }
+  return 0;
 }

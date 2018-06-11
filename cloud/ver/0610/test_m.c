@@ -15,10 +15,10 @@ int main(void)
 {
     int     port;                 /* 自ポート番号*/
     char    port_moji[6];
-    int     sockfd, acc_sockfd,sockfd2, acc_sockfd2;   /* ソケット記述子 */
-    struct sockaddr_in      addr,addr2, my_addr;
+    int     sockfd, acc_sockfd;   /* ソケット記述子 */
+    struct sockaddr_in      addr, my_addr;
                                   /* インタネットソケットアドレス構造体 */
-    int     addrlen,addrlen2;
+    int     addrlen;
     char    BUFF[BUFFSIZE];       /* 受信バッファ */
     int     nbytes;               /* 受信メッセージ長 */
     char *ptr;  //分割後の文字列が入るポインタ
@@ -62,14 +62,7 @@ int main(void)
       perror("wait accept");
       exit(1);
     }
-    //=============================================================================
-    addrlen2 = sizeof (addr2);
-    /* クライアントからの接続受付 */
-    if ((acc_sockfd2 = accept(sockfd2, (struct sockaddr *)&addr2, &addrlen2)) < 0) {
-      perror("wait accept2");
-      exit(1);
-    }
-    //=============================================================================
+
     bzero(&BUFF,sizeof(BUFF));
 
     int readsize,i;
