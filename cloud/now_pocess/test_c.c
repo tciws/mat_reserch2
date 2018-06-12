@@ -12,7 +12,7 @@
 
 int main(int argc, char* argv[]){
   char    *host = "cs-d10";                /* 相手ホスト名 */
-  int     port = 55555;                 /* 相手ポート番号 */
+  int     port = 50040;                 /* 相手ポート番号 */
   int     sockfd;               /* ソケット記述子 */
   struct sockaddr_in      addr, my_addr;
   /* インタネットソケットアドレス構造体 */

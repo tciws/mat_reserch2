@@ -10,15 +10,23 @@
 #include	<stdlib.h>
 #include	<unistd.h>
 #define BUFFSIZE 1000            /* メッセージの最大長 */
+#define VALUE_SIZE 15360        //VALUE格納用
 #define port_file "mngnode.conf" //ポート番号が書いてある設定ファイル
 int main(void)
 {
-    int     port;                 /* 自ポート番号*/
+    int     port;                 //クライアントノード用ポート番号
+    int     port_comp;            //計算ノード用ポート番号
     char    port_moji[6];
-    int     sockfd, acc_sockfd;   /* ソケット記述子 */
+    int     sockfd, acc_sockfd;   //クライアントノード用．ソケット記述子
+    int     sockfd_comp, acc_sockfd_comp;   //計算ノード用，ソケット記述子
     struct sockaddr_in      addr, my_addr;
-                                  /* インタネットソケットアドレス構造体 */
-    int     addrlen;
+                                  //クライアントノード用，インタネットソケットアドレス構造体
+
+    struct sockaddr_in      addr_comp, my_addr_comp;
+                                 //計算ノード用，インタネットソケットアドレス構造体
+    int     addrlen;             //クライアントノード用
+    int     addrlen_comp;             //計算ノード用
+
     char    BUFF[BUFFSIZE];       /* 受信バッファ */
     int     nbytes;               /* 受信メッセージ長 */
     char *ptr;  //分割後の文字列が入るポインタ
@@ -28,20 +36,44 @@ int main(void)
       perror("can't open file\n");
       exit(1);
     }
-    fgets(port_moji, 6, fp_port);
+    fgets(port_moji, 6, fp_port); //クライアントノード用ポート番号
     port = atoi(port_moji);
 
+    fgets(port_moji, 6, fp_port); //計算ノード用ポート番号
+    port_comp = atoi(port_moji);
+
     fclose(fp_port);
-    printf("my port is %d\n",port);
+    printf("client node port is %d\n",port);
+    printf("compute node port is %d\n",port);
     //----------------------------------------------------------
 
-    /* ソケットの生成 */
+    //===================ソケット生成===============================
+    //計算ノード用ソケット作成
+    if ((sockfd_comp = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("ソケット生成失敗");         /* ソケットの生成失敗 */
+        exit(1);
+    }
+    //クライアントノードのソケット生成
     if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
         perror("ソケット生成失敗");         /* ソケットの生成失敗 */
         exit(1);
     }
+    //===============================================================
+    //===================ポートとアドレスの設定===============================
+    //計算ノード側の自ポートとアドレスの設定
+    bzero((char *) &my_addr_comp, sizeof(my_addr_comp));      /* 0クリア */
+    my_addr_comp.sin_family = AF_INET;                   /* アドレスファミリ */
+    my_addr_comp.sin_addr.s_addr = htonl(INADDR_ANY);    /* アドレス */
+    my_addr_comp.sin_port = htons(port);                 /* ポート番号 */
+    if (bind(sockfd_comp, (struct sockaddr *) &my_addr_comp, sizeof(my_addr_comp)) < 0) {
+        perror("設定失敗");         /* 自アドレスと自ポート番号の設定失敗 */
+        exit(1);
+    }
 
-    /* 自アドレスと自ポート番号の設定 */
+    /* ソケットを接続待ちの状態にする */
+    listen(sockfd_comp, 5);
+
+    //クライアント側の自ポートとアドレスの設定
     bzero((char *) &my_addr, sizeof(my_addr));      /* 0クリア */
     my_addr.sin_family = AF_INET;                   /* アドレスファミリ */
     my_addr.sin_addr.s_addr = htonl(INADDR_ANY);    /* アドレス */
@@ -53,48 +85,69 @@ int main(void)
 
     /* ソケットを接続待ちの状態にする */
     listen(sockfd, 5);
+    //===============================================================
 
     addrlen = sizeof (addr);
+    addrlen_comp = sizeof (addr_comp);
+
     bzero(BUFF, sizeof(BUFF));    /* 受信バッファの0クリア */
 
+    /* 計算ノードからの接続受付 */
+    printf("Waiting Compute Node....");
+    if ((acc_sockfd_comp = accept(sockfd_comp, (struct sockaddr *)&addr_comp, &addrlen_comp)) < 0) {
+      perror("wait accept");
+      exit(1);
+    }
+    printf("                        COMPULETE\n");
     /* クライアントからの接続受付 */
+    printf("Waiting Client Node....");
     if ((acc_sockfd = accept(sockfd, (struct sockaddr *)&addr, &addrlen)) < 0) {
       perror("wait accept");
       exit(1);
     }
-
+    printf("                        COMPULETE\n");
     bzero(&BUFF,sizeof(BUFF));
     //==========================================================================
     //メセージ通信に必要な変数
     int readsize,i;
     FILE *fp_write;
     char *filename_write = "a.log";
-    char value[15];
-    int tmp_value;//固定長配列に書き換える？
-
+    char value[15];//一時格納用
+    int VALUE_BUFF[VALUE_SIZE];//VALUE格納用
+    //int file_num[10] = ; //ファイル内の値が
     /* コピー先ファイルのオープン */
     //if ((fp_write = fopen(filename_write, "w")) == NULL) {
     //	perror("can't open recvfile");
     //	exit(1);
     //}
-    int size,count = 0,kekka1,kekka2;
+    int size,count = 0,kekka1,kekka2,nbytes;
     //==========================================================================
     while(1){
       recv(acc_sockfd, &size,sizeof(int),MSG_WAITALL);//文字数を取得
       printf("->->->->->->----%d\n",size);
       if(size == 1025){
-        printf("ファイルが変わります\n");
+        //バッファサイズを送信
+        nbytes = strlen(VALUE_BUFF);
+        send(sockfd,&nbytes,sizeof(int),0);
+        //計算ノードへ送信
+        if (send(acc_sockfd_comp, VALUE_BUFF, nbytes, 0) < 0) {
+            perror("計算ノードへの送信失敗");
+            exit(1);
+        }else{
+          printf("計算ノードへの送信完了\n");
+        }
+        //VALUE_BUFFを初期化
+          bzero(VALUE_BUFF,sizeof(VALUE_BUFF));
+        //countを0に
+        count = 0;
+        printf("NEXT FILE...\n");
         bzero(BUFF,sizeof(BUFF));
       }else if(size >= 1026){
         printf("通信終了\n");
         break;
       }else{
-
       if((readsize = recv(acc_sockfd, BUFF, size,MSG_WAITALL)) != 0){//実際の文字列を受信
         //文字列の先頭８文字がFILE_ENDの場合
-        if(count == 100){
-          break;
-        }
         printf("%s",BUFF);
 
         ptr = strtok(BUFF,",");
@@ -108,13 +161,24 @@ int main(void)
                 strncpy(value,ptr+7,strlen(ptr)-7);
                 tmp_value = atoi(value);
                 printf("%d\n", tmp_value);
+                count++; //VALUEの数を確認する用
               }
                 i++;
             }
         printf("\n================================\n");
         bzero(BUFF,sizeof(BUFF));
       }
-
+      if(count == VALUE_SIZE){
+        //バッファサイズを送信
+        nbytes = strlen(VALUE_BUFF);
+        send(sockfd,&nbytes,sizeof(int),0);
+        if (send(acc_sockfd_comp, VALUE_BUFF, nbytes, 0) < 0) {
+            perror("計算ノードへの送信失敗");
+            exit(1);
+        }else{
+          printf("計算ノードへの送信完了\n");
+        }
+      }
     }
       /*
       else{
@@ -122,7 +186,6 @@ int main(void)
         break;
       }
       */
-      count++;
     }
 
     close(acc_sockfd);  /* ソケット記述子の削除 */
