@@ -64,66 +64,57 @@ int main(void)
     }
 
     bzero(&BUFF,sizeof(BUFF));
-    //==========================================================================
-    //メセージ通信に必要な変数
+
     int readsize,i;
     FILE *fp_write;
     char *filename_write = "a.log";
     char value[15];
-    int tmp_value;//固定長配列に書き換える？
 
     /* コピー先ファイルのオープン */
     //if ((fp_write = fopen(filename_write, "w")) == NULL) {
     //	perror("can't open recvfile");
     //	exit(1);
     //}
-    int size,count = 0,kekka1,kekka2;
-    //==========================================================================
+    int size;
+    //recv(acc_sockfd, &size,sizeof(int),0);
+    //printf("->->->->->->%d\n",size);
     while(1){
-      recv(acc_sockfd, &size,sizeof(int),MSG_WAITALL);//文字数を取得
+      //printf("%d\n",acc_sockfd);
+      recv(acc_sockfd, &size,sizeof(int),0);
       printf("->->->->->->----%d\n",size);
-      if(size == 1025){
-        printf("ファイルが変わります\n");
-        bzero(BUFF,sizeof(BUFF));
-      }else if(size >= 1026){
-        printf("通信終了\n");
-        break;
-      }else{
-
-      if((readsize = recv(acc_sockfd, BUFF, size,MSG_WAITALL)) != 0){//実際の文字列を受信
-        //文字列の先頭８文字がFILE_ENDの場合
-        if(count == 100){
-          break;
-        }
+      if((readsize = recv(acc_sockfd, BUFF, nbytes,0)) != 0){
         printf("%s",BUFF);
-
-        ptr = strtok(BUFF,",");
-            //1つ目のトークン表示
-            //puts(ptr);
-            //トークンがNULLになるまでループ
-            i = 0;
-            while( ptr = strtok(NULL, ",") ){
-              if(i == 0 && ptr != NULL){
-                //value = strtok(tp,"=");
-                strncpy(value,ptr+7,strlen(ptr)-7);
-                tmp_value = atoi(value);
-                printf("%d\n", tmp_value);
-              }
-                i++;
-            }
         printf("\n================================\n");
         bzero(BUFF,sizeof(BUFF));
-      }
-
-    }
-      /*
-      else{
+      }else{
         printf("BREAK\n");
         break;
       }
+      //printf("\n分割します\n");
+      //ptr = strstr(BUFF, "value=");
+      //printf("\n分割します2\n");
+    //  ptr = strtok(ptr,",");
+      //strncpy(value,ptr+7,strlen(ptr)-7);
+      //printf("->->->->->->->->->->->->->->->->->->||%s\n",value);
+      /*
+
+      i = 0;
+      while( ptr = strtok(NULL, ",") ){
+          //value = strtok(tp,"=");
+          if(i == 0){
+            strncpy(value,ptr+7,strlen(ptr)-7);
+            printf("----------------------------------------%s\n", value);
+          }
+          i++;
+      }
+      bzero(&value,sizeof(value));
+      //  if(fwrite(&BUFF, readsize, 1, fp_write) != 1){
+      //perror("fwrite");
+      //}
       */
-      count++;
+      //ptr = "NULL";
     }
+    //close(fp_write);
 
     close(acc_sockfd);  /* ソケット記述子の削除 */
 
