@@ -10,6 +10,14 @@
 
 #define BUFFSIZE 1000
 
+typedef struct{
+  int send_max;
+  int send_min;
+  int send_count;
+  double sum;
+  double sum_sum;
+}SEND_MSG;
+
 int main(int argc, char* argv[]){
   char    *host = "cs-d10";                /* 相手ホスト名 */
   int     port = 50040;                 /* 相手ポート番号 */

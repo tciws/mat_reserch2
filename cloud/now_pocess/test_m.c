@@ -12,6 +12,15 @@
 #define BUFFSIZE 1000            /* メッセージの最大長 */
 #define VALUE_SIZE 15360        //VALUE格納用
 #define port_file "mngnode.conf" //ポート番号が書いてある設定ファイル
+
+typedef struct{
+  int send_max;
+  int send_min;
+  int send_count;
+  double sum;
+  double sum_sum;
+}SEND_MSG;
+
 int main(void)
 {
     int     port;                 //クライアントノード用ポート番号
@@ -28,7 +37,7 @@ int main(void)
     int     addrlen_comp;             //計算ノード用
 
     char    BUFF[BUFFSIZE];       /* 受信バッファ */
-    int     nbytes;               /* 受信メッセージ長 */
+    //int     nbytes;               /* 受信メッセージ長 */
     char *ptr;  //分割後の文字列が入るポインタ
     //----------------自ポート番号の取得-------------------------
     FILE *fp_port;
@@ -44,7 +53,7 @@ int main(void)
 
     fclose(fp_port);
     printf("client node port is %d\n",port);
-    printf("compute node port is %d\n",port);
+    printf("compute node port is %d\n",port_comp);
     //----------------------------------------------------------
 
     //===================ソケット生成===============================
@@ -127,8 +136,9 @@ int main(void)
       printf("->->->->->->----%d\n",size);
       if(size == 1025){
         //バッファサイズを送信
-        nbytes = strlen(VALUE_BUFF);
-        send(sockfd,&nbytes,sizeof(int),0);
+        nbytes = count + 1;
+        count = 0;
+        send(acc_sockfd_comp,&nbytes,sizeof(int),0);
         //計算ノードへ送信
         if (send(acc_sockfd_comp, VALUE_BUFF, nbytes, 0) < 0) {
             perror("計算ノードへの送信失敗");
@@ -136,6 +146,11 @@ int main(void)
         }else{
           printf("計算ノードへの送信完了\n");
         }
+
+        //ファイル終了を計算ノードに送信
+        nbytes = 16000;
+        send(acc_sockfd_comp,&nbytes,sizeof(int),0);
+
         //VALUE_BUFFを初期化
           bzero(VALUE_BUFF,sizeof(VALUE_BUFF));
         //countを0に
@@ -159,8 +174,8 @@ int main(void)
               if(i == 0 && ptr != NULL){
                 //value = strtok(tp,"=");
                 strncpy(value,ptr+7,strlen(ptr)-7);
-                tmp_value = atoi(value);
-                printf("%d\n", tmp_value);
+                VALUE_BUFF[count] = atoi(value);
+                //printf("%d\n", tmp_value);
                 count++; //VALUEの数を確認する用
               }
                 i++;
@@ -168,11 +183,12 @@ int main(void)
         printf("\n================================\n");
         bzero(BUFF,sizeof(BUFF));
       }
-      if(count == VALUE_SIZE){
+      if(count+1 == VALUE_SIZE){
         //バッファサイズを送信
-        nbytes = strlen(VALUE_BUFF);
-        send(sockfd,&nbytes,sizeof(int),0);
-        if (send(acc_sockfd_comp, VALUE_BUFF, nbytes, 0) < 0) {
+        nbytes = VALUE_SIZE;
+        count = 0;
+        send(acc_sockfd_comp,&nbytes,sizeof(int),0);
+        if (send(acc_sockfd_comp, VALUE_BUFF, nbytes, 0) < 0){
             perror("計算ノードへの送信失敗");
             exit(1);
         }else{

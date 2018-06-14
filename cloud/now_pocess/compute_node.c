@@ -8,6 +8,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+typedef struct{
+  int send_max;
+  int send_min;
+  int send_count;
+  double sum;
+  double sum_sum;
+}SEND_MSG;
+
 int main(void){
   char    *host = "cs-d10";                /* 相手ホスト名 */
   int     port = 50140;                 /* 相手ポート番号 */
@@ -15,9 +23,8 @@ int main(void){
   struct sockaddr_in      addr, my_addr;
   /* インタネットソケットアドレス構造体 */
   int     addrlen;
-  int BUFF1[43008] = { }; //170Kbyte
-  int Post[5] = { };
-  int     nbytes;               /* 送信メッセージ長 */
+  int BUFF1[15360] = { }; //170Kbyte
+  //int Post[5] = { };
   struct hostent  *hp;          /* 相手ホストエントリ */
   /* 相手ホストエントリの取得 */
   if ((hp = gethostbyname(host)) == NULL) {
@@ -50,42 +57,70 @@ int main(void){
     /* サーバとのコネクション確立 */
     printf("コネクション確立しました\n");
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    int RESULT[5] = { };
-    int kekka_max=0,kekka_min=0,sum,count,sum_sum;
+    //int RESULT[5] = { };
+    int kekka_max=0,kekka_min=0,count;
+    double sum,sum_sum;
+    int     nbytes;               /* 送信メッセージ長 */
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    //---------------------------------------------------------------
+    //管理ノードからのデータを受信
+
     if (connect(sockfd, (struct sockaddr *)&addr, addrlen) < 0) {
       perror("コネクション確立");
       exit(1);
     }
+  while(1){
+    //受け取るサイズを管理ノードから受け取る
+    recv(sockfd, &nbytes,sizeof(int),MSG_WAITALL);//文字数を取得
+    if(nbytes == 16000){
+      printf("FINAL ANSWER\n");
+      printf("max=$d\n",kekka_max);
+      printf("min=$d\n",kekka_min);
+      printf("sum=%lf\n",sum);
+      printf("sum_sum=%lf\n",sum_sum);
+      printf("FILE END...\n");
 
-    if(recv(sockfd, BUFF1,sizeof(BUFF1),0) != 0){//実際の文字列を受信
+    }else{
+    if(recv(sockfd, BUFF1,nbytes,MSG_WAITALL) != 0){//実際の文字列を受信
         printf("受信しました\n");
         //printf("%d\n",BUFF1[0]);
         kekka_min = BUFF1[0];
-        for(count = 0; count < 10;count++){//ループの最大値は要素の個数を入力
+        //要素の計算
+        for(count = 0; count < nbytes;count++){
           printf("%d\n",BUFF1[count]);
           kekka_max = max(BUFF1[count],kekka_max);
           kekka_min = min(BUFF1[count],kekka_min);
           sum += BUFF1[count];
           sum_sum +=BUFF1[count]*BUFF1[count];
         }
+
+        /*
         RESULT[0] = kekka_max;
         RESULT[1] = kekka_min;
         RESULT[2] = sum;
         RESULT[3] = sum_sum;
         RESULT[4] = count;
+        */
+      }else{
+         printf("受信失敗\n");
+         return -1;
+      }
+    }
+  }
+  /*
         if (send(sockfd, RESULT, sizeof(RESULT), 0) < 0) {
             perror("送信失敗");
             exit(1);
         }else{
           printf("送信完了\n");
         }
-      }else{
-         printf("受信失敗\n");
-         return -1;
-      }
+*/
+      //----------------------------------------------------------
+
     close(sockfd);
 }
+//最大値を返す関数
 int max(int a,int b){
   if(a >= b){
     return a;
@@ -95,6 +130,7 @@ int max(int a,int b){
   }
   return 0;
 }
+//最小値を返す関数
 int min(int a,int b){
   if(a < b){
     return a;
