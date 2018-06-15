@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-
+#include <assert.h>
 typedef struct{
   int send_max;
   int send_min;
@@ -16,7 +16,12 @@ typedef struct{
   double sum;
   double sum_sum;
 }SEND_MSG;
-
+/////////////////////////////////////////
+/////////////////////////////////////////
+long long int counter_array[10];
+////////////////////////////////////////
+////////////////////////////////////////
+//void __attribute__((optimize("O0"))) counter_value(int tid);
 int main(void){
   char    *host = "cs-d10";                /* 相手ホスト名 */
   int     port = 50140;                 /* 相手ポート番号 */
@@ -65,6 +70,10 @@ int main(void){
     SEND_MSG RESULT;
     RESULT.send_count = 0;
     long long int tid = 0;
+    int count_value = 0;
+    long long int total = 0;
+    int temp;
+    int i;
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     //---------------------------------------------------------------
@@ -74,8 +83,8 @@ int main(void){
       perror("コネクション確立");
       exit(1);
     }
-  printf("RECEIVE tid[%ld]\n",tid);
   recv(sockfd, &tid,sizeof(long long int),MSG_WAITALL);//文字数を取得
+  printf("RECEIVE tid[%ld]\n",tid);
   while(1){
     //受け取るサイズを管理ノードから受け取る
     recv(sockfd, &nbytes,sizeof(int),MSG_WAITALL);//文字数を取得
@@ -101,10 +110,11 @@ int main(void){
       kekka_min=INT_MAX;
       sum = 0.0;
       sum_sum = 0.0;
+      total = 0;
       //count = 0;
       RESULT.send_count = 0;
-      printf("RECEIVE tid[%ld]\n",tid);
       recv(sockfd, &tid,sizeof(long long int),MSG_WAITALL);//文字数を取得
+      printf("RECEIVEll tid[%ld]\n",tid);
     }else if(nbytes == 26000){
       printf("通信終了\n");
       break;
@@ -115,12 +125,26 @@ int main(void){
         //kekka_min = BUFF1[0];
         //要素の計算
         for(count = 0; count < nbytes;count++){
-          //printf("count = %10d ||| value = %10d\n",RESULT.send_count,BUFF1[count]);
+        printf("count = %10d ||| value = %10d\n",RESULT.send_count,BUFF1[count]);
           kekka_max = max(BUFF1[count],kekka_max);
           kekka_min = min(BUFF1[count],kekka_min);
           sum += (double)BUFF1[count];
           sum_sum += (double)BUFF1[count]*BUFF1[count];
           RESULT.send_count++;
+
+          //////////////////////////////////////////////////////////////////////////
+          //////////////////////////////////////////////////////////////////////////
+          //負荷処理
+          count_value=BUFF1[count];
+          for (i = 0; i < count_value; i++) {
+          //printf("%d\n",i);
+          //temp = (int)tid;
+          //counter_value(tid); /* valueの回数分実行 */
+          }
+          total += count_value;
+          //assert(total == *get_counter_by_tid(tid)); /* assert.h */
+          //////////////////////////////////////////////////////////////////////////
+          //////////////////////////////////////////////////////////////////////////
         }
           //printf("MAX = %10d ||| MIN = %10d\n",kekka_max,kekka_min);
         /*
@@ -146,6 +170,15 @@ int main(void){
 */
       //----------------------------------------------------------
     close(sockfd);
+}
+long long int get_counter_by_tid(long long int tid){
+  return counter_array[tid];
+}
+void __attribute__((optimize("O0"))) counter_value(long long int tid){
+volatile long long int *counter;
+//トランザクション固有のカウンタ変数を取得
+  counter = get_counter_by_tid(tid);
+  (*counter)++;
 }
 //最大値を返す関数
 int max(int a,int b){
