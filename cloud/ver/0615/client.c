@@ -7,22 +7,12 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
 
 #define BUFFSIZE 1000
 
-typedef struct{
-  int send_max;
-  int send_min;
-  int send_count;
-  double sum;
-  double sum_sum;
-}SEND_MSG;
-
 int main(int argc, char* argv[]){
-  clock_t start, end;
   char    *host = "cs-d10";                /* 相手ホスト名 */
-  int     port = 50040;                 /* 相手ポート番号 */
+  int     port = 55555;                 /* 相手ポート番号 */
   int     sockfd;               /* ソケット記述子 */
   struct sockaddr_in      addr, my_addr;
   /* インタネットソケットアドレス構造体 */
@@ -30,15 +20,12 @@ int main(int argc, char* argv[]){
   char BUFF1[BUFFSIZE-100] = {0};
   char BUFF2[100];
   char HOGE[100] = {0};
-  char    END[] = "END";
-  char    FILE_END[] = "FILE_END";
+  char    END[] = "\nEND\n";
   int     nbytes;               /* 送信メッセージ長 */
   struct hostent  *hp;          /* 相手ホストエントリ */
   int *size;
 
-  start = clock();
-
-  if(argc < 2){
+  if(argc != 2){
     printf("please input 10 filename\n");
     exit(1);
   }
@@ -81,53 +68,73 @@ int main(int argc, char* argv[]){
     }
 
     //printf("Send message: ");
-    //============================================================
+
     FILE *fp;//読み込んだファイルへのポインタ
     char *filename;//読み込むファイル名(標準入力から与えられる)
     int i;
-    SEND_MSG RESULT;
-    //============================================================
+
     for(i=1;i<argc;i++){
       filename = argv[i];
       if((fp=fopen(filename, "r")) == NULL){
 	       perror("can't open file\n");
 	        exit(1);
       }
+
       bzero(BUFF1,sizeof(BUFF1));
+      bzero(BUFF2,sizeof(BUFF2));
+/*
+      while(feof(fp) == 0){
+	//fgets(BUFF, BUFFSIZE, fp);
+  fread(BUFF, sizeof(char), BUFFSIZE, fp);
+	nbytes = strlen(BUFF);
+  printf("##%d\n",nbytes);
+	//BUFF[nbytes-1]='|';
+	if (send(sockfd, BUFF, BUFFSIZE, 0) != BUFFSIZE) {
+	  perror("送信失敗");
+	  exit(1);
+	}
+	bzero(&BUFF,sizeof(BUFF));
+      }
+      */
       nbytes = 0;
       while(feof(fp) == 0){
-        fgets(BUFF1, BUFFSIZE, fp); /* 送信メッセージの取得 */
-        //printf("%s", BUFF1);
-        nbytes = strlen(BUFF1);
-        send(sockfd,&nbytes,sizeof(int),0);
-        if (send(sockfd, BUFF1, nbytes, 0) < 0) {
+        fgets(BUFF2, BUFFSIZE, fp); /* 送信メッセージの取得 */
+      //fread(BUFF, sizeof(char), 1023, fp);
+        //printf("##%d\n",nbytes);
+        if(nbytes+strlen(BUFF2)<=BUFFSIZE-100){
+          printf("%s", BUFF2);
+          strncat(BUFF1, BUFF2, strlen(BUFF2));
+          nbytes += strlen(BUFF2);
+        }else{
+          printf("変態紳士%lu\n",nbytes);
+          printf("送信処理を書く\n");
+          //size = strlen(BUFF1);
+          nbytes = strlen(BUFF1);
+          send(sockfd,&nbytes,sizeof(int),0);
+          printf("->->->->->->->%d\n",nbytes);
+          //結合処理を書く
+          if (send(sockfd, BUFF1, nbytes, 0) < 0) {
         	  perror("送信失敗");
         	  exit(1);
+        	}
+          //
+          bzero(BUFF1,sizeof(BUFF1));
+          printf("%s", BUFF2);
+          strncat(BUFF1, BUFF2, strlen(BUFF2));
+          nbytes = 0;
         }
-        bzero(BUFF1,sizeof(BUFF1));
+        bzero(BUFF2,sizeof(BUFF2));
+      }
+      nbytes = strlen(BUFF1);
+      send(sockfd,&nbytes,sizeof(int),0);
+      printf("->->->->->->->---%d\n",nbytes);
+      if (send(sockfd, BUFF1, nbytes, 0) < 0) {
+        perror("送信失敗");
+        exit(1);
+      }else{
+        send(sockfd, END, 5, 0);
       }
       fclose(fp);
-      printf("ファイル終了宣言\n");
-      nbytes = 1025;
-      send(sockfd,&nbytes,sizeof(int),0);
-      //send(sockfd,FILE_END,9,0);
-      //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      //管理ノードからの結果を受け取る処理
-      printf("管理ノードから結果を受信\n");
-      recv(sockfd, &RESULT,sizeof(SEND_MSG),MSG_WAITALL);
-      printf("FINAL ANSWER\n");
-      printf("max=%d\n",RESULT.send_max);
-      printf("min=%d\n",RESULT.send_min);
-      printf("sum=%d\n",(int)RESULT.sum);
-      printf("std=%d\n",(int)RESULT.sum_sum);
-      printf("counter=%d\n",RESULT.send_count);
-      //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     }
-    printf("通信終了宣言\n");
-    nbytes = 1026;
-    send(sockfd,&nbytes,sizeof(int),0);
-    //send(sockfd,END,4,0);
     close(sockfd);
-    end = clock();
-    printf("処理時間:%d[ms]\n", end-start);
 }
