@@ -7,7 +7,6 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
 
 #define BUFFSIZE 1000
 
@@ -20,7 +19,6 @@ typedef struct{
 }SEND_MSG;
 
 int main(int argc, char* argv[]){
-  clock_t start, end;
   char    *host = "cs-d10";                /* 相手ホスト名 */
   int     port = 50040;                 /* 相手ポート番号 */
   int     sockfd;               /* ソケット記述子 */
@@ -35,8 +33,6 @@ int main(int argc, char* argv[]){
   int     nbytes;               /* 送信メッセージ長 */
   struct hostent  *hp;          /* 相手ホストエントリ */
   int *size;
-
-  start = clock();
 
   if(argc < 2){
     printf("please input 10 filename\n");
@@ -128,6 +124,4 @@ int main(int argc, char* argv[]){
     send(sockfd,&nbytes,sizeof(int),0);
     //send(sockfd,END,4,0);
     close(sockfd);
-    end = clock();
-    printf("処理時間:%d[ms]\n", end-start);
 }
