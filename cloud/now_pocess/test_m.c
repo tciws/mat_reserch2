@@ -129,7 +129,7 @@ int main(void)
     int VALUE_BUFF[VALUE_SIZE];//VALUE格納用
     int tmp_max = 0,tmp_min = INT_MAX;
     double kekka_tmp;
-    long long int tid;
+    long long int tid = 0;
     //int file_num[10] = ; //ファイル内の値が
     /* コピー先ファイルのオープン */
     //if ((fp_write = fopen(filename_write, "w")) == NULL) {
@@ -139,7 +139,8 @@ int main(void)
     int size,count = 0,kekka1,kekka2,nbytes;
     SEND_MSG RESULT;
     //==========================================================================
-      //send(acc_sockfd_comp,&tid,sizeof(long long int),0); //トランザクションIDを送信
+    printf("SEND tid[%ld]\n",tid);
+      send(acc_sockfd_comp,&tid,sizeof(long long int),0); //トランザクションIDを送信
     while(1){
       recv(acc_sockfd, &size,sizeof(int),MSG_WAITALL);//文字数を取得
       //printf("->->->->->->----%d\n",size);
@@ -182,6 +183,8 @@ int main(void)
         printf("クライアントノードへ結果を送信\n");
         send(acc_sockfd,&RESULT,sizeof(SEND_MSG),0);
         //************************************************************
+        printf("SEND tid[%ld]\n",tid);
+        send(acc_sockfd_comp,&tid,sizeof(long long int),0); //トランザクションIDを送信
         printf("NEXT FILE...\n");
         bzero(BUFF,sizeof(BUFF));
       }else if(size >= 1026){
