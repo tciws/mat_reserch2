@@ -59,10 +59,11 @@ int main(void){
     printf("コネクション確立しました\n");
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //int RESULT[5] = { };
-    int kekka_max=0,kekka_min=0,count;
+    int kekka_max=0,kekka_min=INT_MAX,count;
     double sum = 0.0,sum_sum = 0.0;
     int     nbytes;               /* 送信メッセージ長 */
     SEND_MSG RESULT;
+    RESULT.send_count = 0;
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     //---------------------------------------------------------------
@@ -88,16 +89,17 @@ int main(void){
       RESULT.send_min = kekka_min;
       RESULT.sum = sum;
       RESULT.sum_sum = sum_sum;
-      RESULT.send_count = count;
+      //RESULT.send_count = count;
       //==========================================================
       printf("管理ノードに結果を送信\n");
       send(sockfd,&RESULT,sizeof(SEND_MSG),0);
       //==========================================================
       kekka_max=0;
-      kekka_min=0;
+      kekka_min=INT_MAX;
       sum = 0.0;
       sum_sum = 0.0;
-      count = 0;
+      //count = 0;
+      RESULT.send_count = 0;
     }else if(nbytes == 26000){
       printf("通信終了\n");
       break;
@@ -105,16 +107,17 @@ int main(void){
     if(recv(sockfd, BUFF1,nbytes*sizeof(int),MSG_WAITALL) != 0){//実際の文字列を受信
         printf("受信しました\n");
         //printf("%d\n",BUFF1[0]);
-        kekka_min = BUFF1[0];
+        //kekka_min = BUFF1[0];
         //要素の計算
         for(count = 0; count < nbytes;count++){
-          printf("count = %10d||| value = %10d\n",count,BUFF1[count]);
+          printf("count = %10d ||| value = %10d\n",RESULT.send_count,BUFF1[count]);
           kekka_max = max(BUFF1[count],kekka_max);
           kekka_min = min(BUFF1[count],kekka_min);
           sum += (double)BUFF1[count];
           sum_sum += (double)BUFF1[count]*BUFF1[count];
+          RESULT.send_count++;
         }
-
+          printf("MAX = %10d ||| MIN = %10d\n",kekka_max,kekka_min);
         /*
         RESULT[0] = kekka_max;
         RESULT[1] = kekka_min;

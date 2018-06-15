@@ -125,10 +125,11 @@ int main(void)
     int readsize,i;
     FILE *fp_write;
     char *filename_write = "a.log";
-    char value[15];//一時格納用
+    char value[30];//一時格納用
     int VALUE_BUFF[VALUE_SIZE];//VALUE格納用
     int tmp_max = 0,tmp_min = INT_MAX;
     double kekka_tmp;
+    long long int tid;
     //int file_num[10] = ; //ファイル内の値が
     /* コピー先ファイルのオープン */
     //if ((fp_write = fopen(filename_write, "w")) == NULL) {
@@ -138,10 +139,12 @@ int main(void)
     int size,count = 0,kekka1,kekka2,nbytes;
     SEND_MSG RESULT;
     //==========================================================================
+      //send(acc_sockfd_comp,&tid,sizeof(long long int),0); //トランザクションIDを送信
     while(1){
       recv(acc_sockfd, &size,sizeof(int),MSG_WAITALL);//文字数を取得
       //printf("->->->->->->----%d\n",size);
       if(size == 1025){
+        tid++;
         //バッファサイズを送信
         printf("count = %d\n", count);
         nbytes = count;
@@ -171,7 +174,7 @@ int main(void)
         RESULT.sum = RESULT.sum/(double)RESULT.send_count;
         //kekka_tmp = RESULT.sum_sum/(double)RESULT.send_count - (RESULT.sum/(double)RESULT.send_count)*(RESULT.sum/(double)RESULT.send_count);
         //RESULT.sum_sum = RESULT.sum_sum/(double)RESULT.send_count;
-        kekka_tmp = RESULT.sum_sum/RESULT.send_count - RESULT.sum*RESULT.sum;
+        kekka_tmp = RESULT.sum_sum / RESULT.send_count - RESULT.sum*RESULT.sum;
         //RESULT.sum_sum = (RESULT.sum/(double)RESULT.send_count)*(RESULT.sum/(double)RESULT.send_count);
         RESULT.sum_sum = sqrt(kekka_tmp);
         //結果をクライアントノードに送信
@@ -202,10 +205,11 @@ int main(void)
                 //value = strtok(tp,"=");
                 strncpy(value,ptr+7,strlen(ptr)-7);
                 VALUE_BUFF[count] = atoi(value);
+                bzero(value,sizeof(value));
                 tmp_max = max(tmp_max,VALUE_BUFF[count]);
                 tmp_min = min(tmp_min,VALUE_BUFF[count]);
                 printf("value -> %d\n", VALUE_BUFF[count]);
-                printf("MAX = %d |||MIN = %d\n",tmp_max,tmp_min);
+                //printf("MAX = %d ||| MIN = %d\n",tmp_max,tmp_min);
                 count++; //VALUEの数を確認する用
               }
                 i++;
