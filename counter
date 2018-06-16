@@ -1,0 +1,9 @@
+int value;
+long total = 0;
+value = get_value(line); /* 解析対象値を取得 */
+for (i = 0; i < value; i++) {
+count_value(tid); /* valueの回数分実行 */
+}
+total += value;
+/* totalとカウンタ値は一致(必ず確認) */
+assert(total == *get_counter_by_tid(tid)); /* assert.h */
