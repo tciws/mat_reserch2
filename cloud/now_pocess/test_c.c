@@ -7,7 +7,7 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
+#include <sys/time.h>
 
 #define BUFFSIZE 1000
 
@@ -20,8 +20,15 @@ typedef struct{
 }SEND_MSG;
 
 int main(int argc, char* argv[]){
-  clock_t start, end;
-  char    *host = "cs-d10";                /* 相手ホスト名 */
+  struct timeval tv;
+  time_t start;
+  time_t end;
+  time_t ustart;
+  time_t uend;
+  time_t tmp_kekka_end,tmp_kekka_start;
+  double kekka_time[10];
+  //time_t kekka_utime[10];
+  char    *host = "cs-d40";                /* 相手ホスト名 */
   int     port = 50040;                 /* 相手ポート番号 */
   int     sockfd;               /* ソケット記述子 */
   struct sockaddr_in      addr, my_addr;
@@ -35,9 +42,6 @@ int main(int argc, char* argv[]){
   int     nbytes;               /* 送信メッセージ長 */
   struct hostent  *hp;          /* 相手ホストエントリ */
   int *size;
-
-  start = clock();
-
   if(argc < 2){
     printf("please input 10 filename\n");
     exit(1);
@@ -76,7 +80,7 @@ int main(int argc, char* argv[]){
 
     /* サーバとのコネクション確立 */
     if (connect(sockfd, (struct sockaddr *)&addr, addrlen) < 0) {
-      perror("コネクション確立");
+      perror("CONNECTION COMPLETE");
       exit(1);
     }
 
@@ -88,6 +92,9 @@ int main(int argc, char* argv[]){
     SEND_MSG RESULT;
     //============================================================
     for(i=1;i<argc;i++){
+      gettimeofday(&tv, NULL);
+      start = tv.tv_sec;
+      ustart = tv.tv_usec;
       filename = argv[i];
       if((fp=fopen(filename, "r")) == NULL){
 	       perror("can't open file\n");
@@ -107,13 +114,13 @@ int main(int argc, char* argv[]){
         bzero(BUFF1,sizeof(BUFF1));
       }
       fclose(fp);
-      printf("ファイル終了宣言\n");
+      printf("END OF FILE\n");
       nbytes = 1025;
       send(sockfd,&nbytes,sizeof(int),0);
       //send(sockfd,FILE_END,9,0);
       //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //管理ノードからの結果を受け取る処理
-      printf("管理ノードから結果を受信\n");
+      printf("RECIEVE RESULT TO MANAGER\n");
       recv(sockfd, &RESULT,sizeof(SEND_MSG),MSG_WAITALL);
       printf("FINAL ANSWER\n");
       printf("max=%d\n",RESULT.send_max);
@@ -122,12 +129,29 @@ int main(int argc, char* argv[]){
       printf("std=%d\n",(int)RESULT.sum_sum);
       printf("counter=%d\n",RESULT.send_count);
       //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      ///////////////////////////////////////////////////////////////
+      gettimeofday(&tv, NULL);
+      end = tv.tv_sec;
+      uend = tv.tv_usec;
+      tmp_kekka_start = start*1000000 + ustart;
+      tmp_kekka_end = end*1000000 + uend;
+      kekka_time[i-1] = (double)(tmp_kekka_end - tmp_kekka_start)/1000000;
+      //kekka_utime[i-1] = uend-ustart;
+      printf("FILE -> %2d.log ||| time -> %lf [sec]\n",i,kekka_time);
+      ///////////////////////////////////////////////////////////////
     }
-    printf("通信終了宣言\n");
+    printf("SIGNAL END\n");
     nbytes = 1026;
     send(sockfd,&nbytes,sizeof(int),0);
     //send(sockfd,END,4,0);
     close(sockfd);
-    end = clock();
-    printf("処理時間:%d[ms]\n", end-start);
+    /*
+    time_t time_sum = 0;
+    time_t utime_sum = 0;
+    for(i = 1; i < argc; i++){
+      time_sum += kekka_time[i-1];
+      utime_sum += kekka_utime[i-1];
+    }
+    printf("AVERAGE_TIME %lf [sec]\n",(double)utime_sum/1000000);
+    */
 }
