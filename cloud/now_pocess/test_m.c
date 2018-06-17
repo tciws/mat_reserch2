@@ -242,7 +242,7 @@ int main(void)
         RESULT.send_max = max(COMPUTE_NODE_RESULT[2].send_max,tmp_max);
 
         tmp_min = COMPUTE_NODE_RESULT[0].send_min;
-        tmp_min = max(COMPUTE_NODE_RESULT[1].send_min,tmp_min);
+        tmp_min = min(COMPUTE_NODE_RESULT[1].send_min,tmp_min);
         RESULT.send_min = min(COMPUTE_NODE_RESULT[2].send_min,tmp_min);
 
         RESULT.sum=COMPUTE_NODE_RESULT[0].sum + COMPUTE_NODE_RESULT[1].sum + COMPUTE_NODE_RESULT[2].sum;

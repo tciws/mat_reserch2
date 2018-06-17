@@ -136,11 +136,11 @@ int main(void){
           //////////////////////////////////////////////////////////////////////////
           //負荷処理
           count_value=BUFF1[count];
-          //for (i = 0; i < count_value; i++) {
+          for (i = 0; i < count_value; i++) {
           //printf("%d\n",i);
           //temp = (int)tid;
-          //counter_value(tid); /* valueの回数分実行 */
-          //}
+          counter_value(tid); /* valueの回数分実行 */
+          }
           total += count_value;
           //assert(total == *get_counter_by_tid(tid)); /* assert.h */
           //////////////////////////////////////////////////////////////////////////
@@ -171,8 +171,8 @@ int main(void){
       //----------------------------------------------------------
     close(sockfd);
 }
-long long int get_counter_by_tid(long long int tid){
-  return counter_array[tid];
+long long int *get_counter_by_tid(long long int tid){
+  return &counter_array[tid];
 }
 void __attribute__((optimize("O0"))) counter_value(long long int tid){
 volatile long long int *counter;

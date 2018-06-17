@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
   time_t ustart;
   time_t uend;
   time_t tmp_kekka_end,tmp_kekka_start;
-  double kekka_time[10];
+  double kekka_time;
   //time_t kekka_utime[10];
   char    *host = "cs-d40";                /* 相手ホスト名 */
   int     port = 50040;                 /* 相手ポート番号 */
@@ -42,6 +42,11 @@ int main(int argc, char* argv[]){
   int     nbytes;               /* 送信メッセージ長 */
   struct hostent  *hp;          /* 相手ホストエントリ */
   int *size;
+  ////////////////////////////////////////////////////////
+  gettimeofday(&tv, NULL);
+  start = tv.tv_sec;
+  ustart = tv.tv_usec;
+  ////////////////////////////////////////////////////////
   if(argc < 2){
     printf("please input 10 filename\n");
     exit(1);
@@ -92,9 +97,6 @@ int main(int argc, char* argv[]){
     SEND_MSG RESULT;
     //============================================================
     for(i=1;i<argc;i++){
-      gettimeofday(&tv, NULL);
-      start = tv.tv_sec;
-      ustart = tv.tv_usec;
       filename = argv[i];
       if((fp=fopen(filename, "r")) == NULL){
 	       perror("can't open file\n");
@@ -135,7 +137,7 @@ int main(int argc, char* argv[]){
       uend = tv.tv_usec;
       tmp_kekka_start = start*1000000 + ustart;
       tmp_kekka_end = end*1000000 + uend;
-      kekka_time[i-1] = (double)(tmp_kekka_end - tmp_kekka_start)/1000000;
+      kekka_time = (double)(tmp_kekka_end - tmp_kekka_start)/1000000;
       //kekka_utime[i-1] = uend-ustart;
       printf("FILE -> %2d.log ||| time -> %lf [sec]\n",i,kekka_time);
       ///////////////////////////////////////////////////////////////
@@ -154,4 +156,5 @@ int main(int argc, char* argv[]){
     }
     printf("AVERAGE_TIME %lf [sec]\n",(double)utime_sum/1000000);
     */
+    printf("FINAL TIME -> %lf [sec]\nAVERAGE TIME -> %lf[sec]\n",i,kekka_time,kekka_time/10);
 }
