@@ -125,7 +125,7 @@ int main(void){
         //kekka_min = BUFF1[0];
         //要素の計算
         for(count = 0; count < nbytes;count++){
-        printf("count = %10d ||| value = %10d\n",RESULT.send_count,BUFF1[count]);
+        //printf("count = %10d ||| value = %10d\n",RESULT.send_count,BUFF1[count]);
           kekka_max = max(BUFF1[count],kekka_max);
           kekka_min = min(BUFF1[count],kekka_min);
           sum += (double)BUFF1[count];
