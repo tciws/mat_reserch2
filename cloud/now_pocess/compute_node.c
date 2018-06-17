@@ -23,7 +23,7 @@ long long int counter_array[10];
 ////////////////////////////////////////
 //void __attribute__((optimize("O0"))) counter_value(int tid);
 int main(void){
-  char    *host = "cs-d10";                /* 相手ホスト名 */
+  char    *host = "cs-d40";                /* 相手ホスト名 */
   int     port = 50140;                 /* 相手ポート番号 */
   int     sockfd;               /* ソケット記述子 */
   struct sockaddr_in      addr, my_addr;
@@ -61,7 +61,7 @@ int main(void){
     }
     addrlen = sizeof (addr);
     /* サーバとのコネクション確立 */
-    printf("コネクション確立しました\n");
+    printf("CONNECTION COMPLETE\n");
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //int RESULT[5] = { };
     int kekka_max=0,kekka_min=INT_MAX,count;
@@ -80,7 +80,7 @@ int main(void){
     //管理ノードからのデータを受信
 
     if (connect(sockfd, (struct sockaddr *)&addr, addrlen) < 0) {
-      perror("コネクション確立");
+      perror("CONNECTION COMPLETE");
       exit(1);
     }
   recv(sockfd, &tid,sizeof(long long int),MSG_WAITALL);//文字数を取得
@@ -103,7 +103,7 @@ int main(void){
       RESULT.sum_sum = sum_sum;
       //RESULT.send_count = count;
       //==========================================================
-      printf("管理ノードに結果を送信\n");
+      printf("SEND RESULT TO MANAGER NODE...\n");
       send(sockfd,&RESULT,sizeof(SEND_MSG),0);
       //==========================================================
       kekka_max=0;
@@ -116,16 +116,16 @@ int main(void){
       recv(sockfd, &tid,sizeof(long long int),MSG_WAITALL);//文字数を取得
       printf("RECEIVEll tid[%ld]\n",tid);
     }else if(nbytes == 26000){
-      printf("通信終了\n");
+      printf("SIGNAL END\n");
       break;
     }else{
     if(recv(sockfd, BUFF1,nbytes*sizeof(int),MSG_WAITALL) != 0){//実際の文字列を受信
-        printf("受信しました\n");
+        printf("RECEIVE COMPLETE\n");
         //printf("%d\n",BUFF1[0]);
         //kekka_min = BUFF1[0];
         //要素の計算
         for(count = 0; count < nbytes;count++){
-        printf("count = %10d ||| value = %10d\n",RESULT.send_count,BUFF1[count]);
+        //printf("count = %10d ||| value = %10d\n",RESULT.send_count,BUFF1[count]);
           kekka_max = max(BUFF1[count],kekka_max);
           kekka_min = min(BUFF1[count],kekka_min);
           sum += (double)BUFF1[count];
@@ -139,7 +139,7 @@ int main(void){
           for (i = 0; i < count_value; i++) {
           //printf("%d\n",i);
           //temp = (int)tid;
-          //counter_value(tid); /* valueの回数分実行 */
+          counter_value(tid); /* valueの回数分実行 */
           }
           total += count_value;
           //assert(total == *get_counter_by_tid(tid)); /* assert.h */
@@ -155,7 +155,7 @@ int main(void){
         RESULT[4] = count;
         */
       }else{
-         printf("受信失敗\n");
+         printf("RECEIVE ERROR\n");
          return -1;
       }
     }
@@ -171,8 +171,8 @@ int main(void){
       //----------------------------------------------------------
     close(sockfd);
 }
-long long int get_counter_by_tid(long long int tid){
-  return counter_array[tid];
+long long int *get_counter_by_tid(long long int tid){
+  return &counter_array[tid];
 }
 void __attribute__((optimize("O0"))) counter_value(long long int tid){
 volatile long long int *counter;
