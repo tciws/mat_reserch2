@@ -12,7 +12,7 @@
 #include	<unistd.h>
 #include <limits.h>
 #define BUFFSIZE 1000            /* メッセージの最大長 */
-#define VALUE_SIZE 15360        //VALUE格納用
+#define VALUE_SIZE 5120        //VALUE格納用
 #define port_file "mngnode.conf" //ポート番号が書いてある設定ファイル
 
 typedef struct{

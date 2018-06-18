@@ -22,6 +22,35 @@ long long int counter_array[10];
 ////////////////////////////////////////
 ////////////////////////////////////////
 //void __attribute__((optimize("O0"))) counter_value(int tid);
+long long int* get_counter_by_tid(long long int tid){
+  return &counter_array[tid];
+}
+void __attribute__((optimize("O0"))) counter_value(long long int tid){
+volatile long long int *counter;
+//トランザクション固有のカウンタ変数を取得
+  counter = get_counter_by_tid(tid);
+  (*counter)++;
+}
+//最大値を返す関数
+int max(int a,int b){
+  if(a >= b){
+    return a;
+  }
+  if(a < b){
+    return b;
+  }
+  return 0;
+}
+//最小値を返す関数
+int min(int a,int b){
+  if(a < b){
+    return a;
+  }
+  if(a >= b){
+    return b;
+  }
+  return 0;
+}
 int main(void){
   char    *host = "cs-d40";                /* 相手ホスト名 */
   int     port = 50140;                 /* 相手ポート番号 */
@@ -29,7 +58,7 @@ int main(void){
   struct sockaddr_in      addr, my_addr;
   /* インタネットソケットアドレス構造体 */
   int     addrlen;
-  int BUFF1[15360] = { }; //170Kbyte
+  int BUFF1[5120] = { }; //170Kbyte
   //int Post[5] = { };
   struct hostent  *hp;          /* 相手ホストエントリ */
   /* 相手ホストエントリの取得 */
@@ -142,7 +171,7 @@ int main(void){
           counter_value(tid); /* valueの回数分実行 */
           }
           total += count_value;
-          //assert(total == *get_counter_by_tid(tid)); /* assert.h */
+          assert(total == *get_counter_by_tid(tid)); /* assert.h */
           //////////////////////////////////////////////////////////////////////////
           //////////////////////////////////////////////////////////////////////////
         }
@@ -170,33 +199,4 @@ int main(void){
 */
       //----------------------------------------------------------
     close(sockfd);
-}
-long long int *get_counter_by_tid(long long int tid){
-  return &counter_array[tid];
-}
-void __attribute__((optimize("O0"))) counter_value(long long int tid){
-volatile long long int *counter;
-//トランザクション固有のカウンタ変数を取得
-  counter = get_counter_by_tid(tid);
-  (*counter)++;
-}
-//最大値を返す関数
-int max(int a,int b){
-  if(a >= b){
-    return a;
-  }
-  if(a < b){
-    return b;
-  }
-  return 0;
-}
-//最小値を返す関数
-int min(int a,int b){
-  if(a < b){
-    return a;
-  }
-  if(a >= b){
-    return b;
-  }
-  return 0;
 }
