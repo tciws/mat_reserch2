@@ -9,10 +9,10 @@
 #include <err.h>
 #include <errno.h>
 
-#define P_MAX  10             //プロセス数
+#define P_MAX  2             //プロセス数
 int main(){
 	int pid[P_MAX];
-  int val = 0,i;
+  int status,i;
 	/*
 	子プロセス生成。子プロセスは次の行から始まるため、
 	このような記述をすると、子プロセスが子プロセスを生成しないで済む。
@@ -21,10 +21,22 @@ int main(){
 
 	if( i == P_MAX ){			//親プロセスはすべての子プロセスの終了を待つ
 		for(  i = 0 ; i < P_MAX ; i++ ){
-			wait(&val);
+			wait(&status);
 		}
-	}else if( pid[i] == 0){		//子プロセス
-		printf("child:%d\n",i);
+	}else if( pid[0] == 0){		//子プロセス
+		int t;
+		sleep(5);
+		for(t = 0; t < P_MAX ; t++){
+			printf("child:%d,%d\n",i,pid[t]);
+		}
+		printf("##############################\n");
+		exit(0);
+	}else if( pid[1] == 0){
+		int t;
+		for(t = 0; t < P_MAX ; t++){
+			printf("buryu:%d,%d\n",i,pid[t]);
+		}
+		printf("##############################\n");
 		exit(0);
 	}else{
 	    perror("child process") ;
