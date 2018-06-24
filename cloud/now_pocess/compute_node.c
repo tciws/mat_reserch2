@@ -52,7 +52,7 @@ int min(int a,int b){
   return 0;
 }
 int main(void){
-  char    *host = "cs-d40";                /* 相手ホスト名 */
+  char    *host = "cs-d20";                /* 相手ホスト名 */
   int     port = 50140;                 /* 相手ポート番号 */
   int     sockfd;               /* ソケット記述子 */
   struct sockaddr_in      addr, my_addr;

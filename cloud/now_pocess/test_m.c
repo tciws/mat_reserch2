@@ -150,6 +150,7 @@ int main(void)
     //int tmp_max = 0,tmp_min = INT_MAX;
     double kekka_tmp;
     long long int tid = 0;
+    int print_counter = 0;
     //int file_num[10] = ; //ファイル内の値が
     /* コピー先ファイルのオープン */
     //if ((fp_write = fopen(filename_write, "w")) == NULL) {
@@ -221,6 +222,7 @@ int main(void)
           bzero(VALUE_BUFF,sizeof(VALUE_BUFF));
         //countを0に
         count = 0;
+        print_counter = 0;
         //結果を計算ノードから受ける処理
         //============================================================
         //printf("RECEIVE RESULT.....\n");
@@ -293,6 +295,7 @@ int main(void)
             while( ptr = strtok(NULL, ",") ){
               if(i == 0 && ptr != NULL){
                 //value = strtok(tp,"=");
+                print_counter++;
                 strncpy(value,ptr+7,strlen(ptr)-7);
                 if(count % 3 == 0){
                   VALUE_BUFF[value_counter1] = atoi(value);
