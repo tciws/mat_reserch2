@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
   time_t tmp_kekka_end,tmp_kekka_start;
   double kekka_time;
   //time_t kekka_utime[10];
-  char    *host = "cs-d40";                /* 相手ホスト名 */
+  char    *host = "cs-d20";                /* 相手ホスト名 */
   int     port = 50040;                 /* 相手ポート番号 */
   int     sockfd;               /* ソケット記述子 */
   struct sockaddr_in      addr, my_addr;
